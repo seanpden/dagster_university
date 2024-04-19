@@ -1,6 +1,6 @@
 import requests
 from dagster_duckdb import DuckDBResource
-from dagster import asset, MaterializeResult
+from dagster import MetadataValue, asset, MaterializeResult
 import pandas as pd
 from . import constants
 from ..partitions import monthly_partitions
@@ -27,7 +27,7 @@ def taxi_trips_file(context):
         pd.read_parquet(constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch))
     )
     return MaterializeResult(
-        metadata={"num_rows": num_rows},
+        metadata={"num_rows": MetadataValue.int(num_rows)},
     )
 
 
@@ -45,6 +45,11 @@ def taxi_zones_file():
 
     with open(constants.TAXI_ZONES_FILE_PATH, "wb") as f:
         f.write(taxi_zones.content)
+
+    num_rows = len(pd.read_csv(constants.TAXI_ZONES_FILE_PATH))
+    return MaterializeResult(
+        metadata={"num_rows": MetadataValue.int(num_rows)},
+    )
 
 
 @asset(
